@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tecuit IA</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════════════════
+   BASE
+══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #212121;
+  --sb:      #171717;
+  --surf:    #2f2f2f;
+  --surf2:   #3a3a3a;
+  --bdr:     rgba(255,255,255,0.08);
+  --bdr2:    rgba(255,255,255,0.14);
+  --txt:     #ececec;
+  --dim:     #8e8ea0;
+  --dimmer:  #5a5a72;
+  --grn:     #10a37f;
+  --grn-bg:  rgba(16,163,127,0.1);
+  --grn-bdr: rgba(16,163,127,0.25);
+  --red:     #ef4444;
+  --red-bg:  rgba(239,68,68,0.08);
+  --red-bdr: rgba(239,68,68,0.2);
+  --blue:    #60a5fa;
+  --blue-bg: rgba(96,165,250,0.1);
+  --yel:     #fbbf24;
+  --yel-bg:  rgba(251,191,36,0.1);
+  --r:       10px;
+  --sbw:     260px;
+  --fn:      'DM Sans', system-ui, sans-serif;
+  --mono:    'DM Mono', 'Fira Code', monospace;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--fn); background: var(--bg); color: var(--txt); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* ══════════════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════════════ */
+.app { display: flex; height: 100vh; }
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════ */
+.sidebar { width: var(--sbw); background: var(--sb); display: flex; flex-direction: column; flex-shrink: 0; border-right: 1px solid var(--bdr); transition: transform .25s ease; z-index: 40; overflow: hidden; }
+
+.sb-top { padding: 10px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--bdr); }
+
+.new-btn { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 8px; border: none; background: transparent; color: var(--txt); font-family: var(--fn); font-size: 13.5px; font-weight: 500; cursor: pointer; width: 100%; text-align: left; transition: background .12s; }
+.new-btn:hover { background: rgba(255,255,255,.06); }
+.new-btn i { color: var(--dim); font-size: 13px; }
+
+.sb-search { display: flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 8px; background: rgba(255,255,255,.04); border: 1px solid var(--bdr); }
+.sb-search input { background: none; border: none; color: var(--txt); font-family: var(--fn); font-size: 13px; outline: none; width: 100%; }
+.sb-search input::placeholder { color: var(--dimmer); }
+.sb-search i { color: var(--dimmer); font-size: 11px; flex-shrink: 0; }
+
+.sb-convs { flex: 1; overflow-y: auto; padding: 8px; }
+.sb-convs::-webkit-scrollbar { width: 3px; }
+.sb-convs::-webkit-scrollbar-thumb { background: rgba(255,255,255,.09); border-radius: 2px; }
+
+.sec-lbl { font-size: 10.5px; font-weight: 600; color: var(--dimmer); text-transform: uppercase; letter-spacing: .07em; padding: 10px 8px 4px; }
+
+.conv-item { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 7px; cursor: pointer; transition: background .1s; font-size: 13px; color: var(--dim); }
+.conv-item:hover { background: rgba(255,255,255,.05); color: var(--txt); }
+.conv-item.active { background: rgba(255,255,255,.08); color: var(--txt); }
+.conv-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-del { opacity: 0; background: none; border: none; color: var(--dimmer); cursor: pointer; padding: 2px 5px; border-radius: 4px; font-size: 10px; transition: opacity .1s, color .1s; }
+.conv-item:hover .conv-del { opacity: 1; }
+.conv-del:hover { color: var(--red); }
+
+.sb-bottom { padding: 8px; border-top: 1px solid var(--bdr); }
+.sb-user { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 8px; cursor: default; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--grn), #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.sb-info { flex: 1; }
+.sb-info-name { font-size: 13px; font-weight: 500; }
+.sb-info-sub  { font-size: 11px; color: var(--dim); }
+
+/* status dot */
+.sdot { width: 7px; height: 7px; border-radius: 50%; background: var(--surf2); flex-shrink: 0; transition: background .4s, box-shadow .4s; }
+.sdot.ok  { background: #22c55e; box-shadow: 0 0 7px rgba(34,197,94,.5); }
+.sdot.warn{ background: var(--yel); }
+.sdot.err { background: var(--red); }
+
+/* ══════════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════════ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 14px; height: 52px; border-bottom: 1px solid var(--bdr); flex-shrink: 0; gap: 10px; }
+.tb-left  { display: flex; align-items: center; gap: 8px; }
+.tb-right { display: flex; align-items: center; gap: 4px; position: relative; }
+
+.menu-tog { display: none; background: none; border: none; color: var(--dim); cursor: pointer; padding: 6px; border-radius: 7px; font-size: 15px; transition: color .12s, background .12s; }
+.menu-tog:hover { color: var(--txt); background: var(--surf); }
+
+.model-pick { display: flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 8px; border: 1px solid var(--bdr); background: transparent; color: var(--txt); font-family: var(--fn); font-size: 13.5px; font-weight: 500; cursor: pointer; transition: background .12s, border-color .12s; white-space: nowrap; }
+.model-pick:hover { background: var(--surf); border-color: var(--bdr2); }
+.model-pick i { font-size: 10px; color: var(--dim); }
+
+.tb-status { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: rgba(255,255,255,.04); border: 1px solid var(--bdr); font-size: 11.5px; color: var(--dim); white-space: nowrap; }
+
+.icon-btn { background: none; border: none; color: var(--dim); cursor: pointer; padding: 6px 8px; border-radius: 7px; font-size: 14px; transition: color .12s, background .12s; }
+.icon-btn:hover { color: var(--txt); background: var(--surf); }
+
+/* ── Dropdown ── */
+.dropdown { position: absolute; top: calc(100% + 5px); right: 0; background: #1c1c1c; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; padding: 5px; min-width: 210px; box-shadow: 0 14px 44px rgba(0,0,0,.45); z-index: 50; animation: fadeIn .12s ease; }
+.dropdown.hidden { display: none; }
+.dd-item { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--dim); transition: background .1s, color .1s; border: none; background: none; font-family: var(--fn); width: 100%; text-align: left; }
+.dd-item:hover { background: rgba(255,255,255,.06); color: var(--txt); }
+.dd-item.danger:hover { background: var(--red-bg); color: #f87171; }
+.dd-item i { width: 15px; text-align: center; font-size: 12px; }
+.dd-sep { height: 1px; background: var(--bdr); margin: 4px 0; }
+.dd-item .tpill { width: 28px; height: 15px; border-radius: 10px; background: var(--surf2); position: relative; transition: background .2s; margin-left: auto; flex-shrink: 0; }
+.dd-item .tpill::after { content: ''; position: absolute; width: 11px; height: 11px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: transform .2s; }
+.dd-item .tpill.on { background: var(--grn); }
+.dd-item .tpill.on::after { transform: translateX(13px); }
+
+/* ── Chat area ── */
+.chat-scroll { flex: 1; overflow-y: auto; scroll-behavior: smooth; }
+.chat-scroll::-webkit-scrollbar { width: 5px; }
+.chat-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,.07); border-radius: 3px; }
+
+.chat-inner { max-width: 760px; margin: 0 auto; padding: 28px 20px 16px; display: flex; flex-direction: column; }
+
+/* ── Welcome ── */
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; gap: 14px; animation: fadeUp .4s ease; }
+.w-logo { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, var(--grn), #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 8px 28px rgba(16,163,127,.25); }
+.welcome h1 { font-size: 24px; font-weight: 600; }
+.welcome p  { font-size: 14.5px; color: var(--dim); max-width: 360px; line-height: 1.75; }
+.sug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; width: 100%; max-width: 510px; }
+.sug-card { background: var(--surf); border: 1px solid var(--bdr); border-radius: var(--r); padding: 13px 15px; text-align: left; cursor: pointer; transition: background .12s, border-color .12s, transform .1s; font-family: var(--fn); color: var(--dim); font-size: 13px; line-height: 1.55; }
+.sug-card:hover { background: var(--surf2); border-color: var(--bdr2); transform: translateY(-1px); color: var(--txt); }
+.sug-card strong { display: block; color: var(--txt); font-size: 12.5px; margin-bottom: 3px; }
+
+/* ── Message row ── */
+.msg-row { display: flex; gap: 13px; padding: 16px 0; animation: fadeUp .2s ease; }
+.msg-row + .msg-row { border-top: 1px solid var(--bdr); }
+.msg-av { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-top: 2px; }
+.msg-av.ai  { background: linear-gradient(135deg, var(--grn), #059669); box-shadow: 0 2px 10px rgba(16,163,127,.2); }
+.msg-av.usr { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.msg-body { flex: 1; min-width: 0; }
+.msg-name { font-size: 12.5px; font-weight: 600; color: var(--txt); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.msg-time { font-size: 10.5px; font-weight: 400; color: var(--dimmer); }
+.badge { font-size: 10px; padding: 1px 7px; border-radius: 20px; font-weight: 500; }
+.badge-model { background: var(--grn-bg); color: var(--grn); border: 1px solid var(--grn-bdr); }
+.badge-web   { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(96,165,250,.25); }
+.badge-wiki  { background: var(--yel-bg); color: var(--yel); border: 1px solid rgba(251,191,36,.25); }
+
+/* ── Message content ── */
+.msg-content { color: var(--txt); font-size: 15px; line-height: 1.78; }
+.msg-content p { margin-bottom: 10px; }
+.msg-content p:last-child { margin-bottom: 0; }
+.msg-content ul, .msg-content ol { padding-left: 22px; margin-bottom: 10px; }
+.msg-content li { margin-bottom: 4px; }
+.msg-content h1, .msg-content h2, .msg-content h3 { font-weight: 600; margin: 16px 0 7px; color: var(--txt); }
+.msg-content h1 { font-size: 19px; }
+.msg-content h2 { font-size: 16px; }
+.msg-content h3 { font-size: 14.5px; }
+.msg-content a { color: var(--grn); text-decoration: underline; }
+.msg-content blockquote { border-left: 3px solid var(--grn); padding-left: 14px; color: var(--dim); margin: 10px 0; font-style: italic; }
+.msg-content hr { border: none; border-top: 1px solid var(--bdr); margin: 14px 0; }
+.msg-content table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13.5px; }
+.msg-content th, .msg-content td { border: 1px solid var(--bdr2); padding: 7px 12px; text-align: left; }
+.msg-content th { background: rgba(255,255,255,.05); font-weight: 600; }
+.msg-content code { font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,.07); border: 1px solid var(--bdr); padding: 1px 5px; border-radius: 4px; color: #e2b36c; }
+.msg-content pre { background: #161b22; border: 1px solid rgba(255,255,255,.06); border-radius: 10px; overflow: hidden; margin: 12px 0; }
+.msg-content pre code { background: none; border: none; padding: 13px; display: block; color: #e2e8f0; font-size: 12.5px; line-height: 1.6; overflow-x: auto; }
+.code-hdr { display: flex; align-items: center; justify-content: space-between; padding: 7px 13px; background: rgba(255,255,255,.04); border-bottom: 1px solid rgba(255,255,255,.05); font-size: 11.5px; color: var(--dimmer); font-family: var(--mono); }
+.copy-code { background: none; border: none; cursor: pointer; color: var(--dimmer); font-size: 11.5px; font-family: var(--fn); display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; transition: color .1s, background .1s; }
+.copy-code:hover { color: var(--txt); background: rgba(255,255,255,.06); }
+
+/* ── Sources panel ── */
+.src-panel { margin-top: 11px; border: 1px solid var(--bdr); border-radius: var(--r); overflow: hidden; }
+.src-hdr { display: flex; align-items: center; gap: 7px; padding: 8px 12px; background: rgba(255,255,255,.03); border-bottom: 1px solid transparent; color: var(--dim); font-size: 12.5px; font-weight: 500; cursor: pointer; user-select: none; transition: background .1s; }
+.src-hdr:hover { background: rgba(255,255,255,.05); }
+.src-hdr.open { border-bottom-color: var(--bdr); }
+.src-hdr i.chev { margin-left: auto; font-size: 10px; transition: transform .2s; }
+.src-hdr.open i.chev { transform: rotate(180deg); }
+.src-body { display: none; padding: 7px; }
+.src-body.show { display: flex; flex-direction: column; gap: 5px; }
+.src-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,.025); border: 1px solid var(--bdr); transition: background .1s; text-decoration: none; }
+.src-item:hover { background: rgba(255,255,255,.04); }
+.src-ico { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+.src-ico.web  { background: var(--blue-bg); color: var(--blue); }
+.src-ico.wiki { background: var(--yel-bg); color: var(--yel); }
+.src-txt { flex: 1; min-width: 0; }
+.src-title { font-size: 12px; font-weight: 500; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.src-url   { font-size: 11px; color: var(--dimmer); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Status event ── */
+.status-evt { display: flex; align-items: center; gap: 8px; padding: 7px 11px; border-radius: 8px; background: var(--grn-bg); border: 1px solid var(--grn-bdr); color: var(--grn); font-size: 12.5px; margin-bottom: 5px; animation: fadeIn .2s ease; }
+
+/* ── Message actions ── */
+.msg-actions { display: flex; gap: 1px; margin-top: 8px; opacity: 0; transition: opacity .15s; flex-wrap: wrap; }
+.msg-row:hover .msg-actions { opacity: 1; }
+.act-btn { background: none; border: none; cursor: pointer; color: var(--dimmer); font-size: 12.5px; padding: 4px 8px; border-radius: 5px; font-family: var(--fn); display: flex; align-items: center; gap: 4px; transition: color .1s, background .1s; }
+.act-btn:hover { color: var(--txt); background: var(--surf); }
+
+/* ── Typing dots ── */
+.typing-dots { display: flex; gap: 4px; padding: 6px 0; align-items: center; }
+.typing-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--dimmer); animation: blink 1.4s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: .2s; }
+.typing-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+/* ══════════════════════════════════════════════════
+   INPUT AREA
+══════════════════════════════════════════════════ */
+.input-area { padding: 12px 18px 18px; flex-shrink: 0; }
+.input-wrap { max-width: 760px; margin: 0 auto; }
+
+.stop-row { display: none; text-align: center; margin-bottom: 9px; }
+.stop-row button { background: var(--surf); border: 1px solid var(--bdr); color: var(--txt); padding: 6px 17px; border-radius: 28px; font-family: var(--fn); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .12s; }
+.stop-row button:hover { background: var(--surf2); }
+
+/* ── Voice recording indicator ── */
+.voice-ind { display: none; align-items: center; gap: 8px; padding: 8px 13px; border-radius: 9px; background: rgba(239,68,68,.07); border: 1px solid var(--red-bdr); font-size: 12.5px; color: #f87171; margin-bottom: 8px; animation: fadeIn .2s ease; }
+.voice-ind.show { display: flex; }
+.vbars { display: flex; gap: 2px; align-items: center; height: 16px; flex-shrink: 0; }
+.vbars span { width: 3px; border-radius: 2px; background: var(--red); animation: vbar .8s ease-in-out infinite; }
+.vbars span:nth-child(1){height:5px;animation-delay:0s}
+.vbars span:nth-child(2){height:12px;animation-delay:.1s}
+.vbars span:nth-child(3){height:16px;animation-delay:.2s}
+.vbars span:nth-child(4){height:10px;animation-delay:.3s}
+.vbars span:nth-child(5){height:5px;animation-delay:.4s}
+@keyframes vbar { 0%,100%{transform:scaleY(.4)} 50%{transform:scaleY(1)} }
+#voice-interim { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+.voice-cancel { background: none; border: none; color: #f87171; cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; transition: background .1s; }
+.voice-cancel:hover { background: var(--red-bg); }
+
+.input-box { background: var(--surf); border: 1px solid rgba(255,255,255,.11); border-radius: 14px; padding: 11px 12px; display: flex; flex-direction: column; gap: 8px; transition: border-color .15s; box-shadow: 0 2px 18px rgba(0,0,0,.18); }
+.input-box:focus-within { border-color: rgba(255,255,255,.2); }
+
+.input-ta { background: none; border: none; color: var(--txt); font-family: var(--fn); font-size: 15px; line-height: 1.6; resize: none; outline: none; width: 100%; max-height: 200px; overflow-y: auto; min-height: 24px; }
+.input-ta::placeholder { color: var(--dimmer); }
+.input-ta::-webkit-scrollbar { width: 3px; }
+.input-ta::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+.input-tb { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tb-tools { display: flex; align-items: center; gap: 1px; flex-wrap: wrap; }
+
+.tool-btn { background: none; border: none; color: var(--dimmer); cursor: pointer; padding: 5px 8px; border-radius: 7px; font-size: 12.5px; display: flex; align-items: center; gap: 5px; font-family: var(--fn); transition: color .1s, background .1s; }
+.tool-btn:hover { color: var(--txt); background: rgba(255,255,255,.06); }
+.tool-btn.on { color: var(--grn); background: var(--grn-bg); }
+.tool-btn.on:hover { background: rgba(16,163,127,.16); }
+.tool-btn i { font-size: 13px; }
+
+/* Mic button specific */
+.mic-btn { color: var(--dimmer); }
+.mic-btn.listening { color: var(--red) !important; background: var(--red-bg) !important; animation: pulse-mic 1.2s infinite; }
+@keyframes pulse-mic { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.35)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
+.tb-right-tools { display: flex; align-items: center; gap: 4px; }
+
+.send-btn { width: 34px; height: 34px; border-radius: 9px; border: none; background: var(--txt); color: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: background .12s, opacity .12s, transform .1s; flex-shrink: 0; }
+.send-btn:hover { background: #fff; transform: scale(1.05); }
+.send-btn:disabled { opacity: .25; cursor: not-allowed; transform: none; }
+
+.input-footer { text-align: center; margin-top: 9px; font-size: 11px; color: var(--dimmer); }
+
+/* ── TTS speaker button on messages ── */
+.spk-btn { transition: color .1s, background .1s; }
+.spk-btn.playing { color: var(--grn) !important; animation: spk-pulse .7s ease-in-out infinite; }
+@keyframes spk-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ══════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════ */
+.modal-ov { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.55); backdrop-filter: blur(7px); display: flex; align-items: center; justify-content: center; padding: 16px; animation: fadeIn .14s ease; }
+.modal-ov.hidden { display: none; }
+.modal-box { background: #1d1d1d; border: 1px solid rgba(255,255,255,.1); border-radius: 15px; padding: 22px; width: 100%; max-width: 400px; box-shadow: 0 24px 70px rgba(0,0,0,.5); animation: slideUp .22s cubic-bezier(.16,1,.3,1); }
+.modal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.modal-ttl { font-size: 16px; font-weight: 600; }
+.modal-x { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 17px; padding: 2px 5px; border-radius: 5px; transition: color .1s, background .1s; }
+.modal-x:hover { color: var(--txt); background: var(--surf); }
+
+.model-opts { display: flex; flex-direction: column; gap: 7px; }
+.model-opt { padding: 13px 15px; border-radius: 9px; border: 1px solid var(--bdr); background: var(--surf); cursor: pointer; transition: border-color .12s, background .12s; text-align: left; width: 100%; font-family: var(--fn); }
+.model-opt:hover { border-color: var(--bdr2); background: var(--surf2); }
+.model-opt.sel { border-color: var(--grn); background: var(--grn-bg); }
+.mo-name { font-size: 13.5px; font-weight: 600; color: var(--txt); display: flex; align-items: center; justify-content: space-between; }
+.mo-tag { font-size: 10.5px; font-weight: 500; padding: 2px 7px; border-radius: 20px; }
+.tag-fast  { background: rgba(16,163,127,.14); color: #34d399; border: 1px solid rgba(52,211,153,.22); }
+.tag-smart { background: rgba(99,102,241,.14); color: #a5b4fc; border: 1px solid rgba(99,102,241,.24); }
+.mo-desc { font-size: 12px; color: var(--dim); margin-top: 3px; }
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR OVERLAY (mobile)
+══════════════════════════════════════════════════ */
+.sb-ov { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 39; }
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+.toast { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(8px); background: #1c1c1c; border: 1px solid rgba(255,255,255,.11); border-radius: 28px; padding: 8px 17px; font-size: 13px; color: var(--txt); box-shadow: 0 8px 28px rgba(0,0,0,.32); z-index: 200; display: flex; align-items: center; gap: 7px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ══════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════ */
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes fadeUp  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin    { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+.spin { animation: spin 1.1s linear infinite; }
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+  .sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.4); }
+  .sb-ov { display: block; }
+  .sb-ov.hidden { display: none; }
+  .menu-tog { display: flex; }
+  .tb-status { display: none; }
+  .chat-inner { padding: 20px 14px 14px; }
+  .input-area { padding: 10px 12px 16px; }
+  .sug-grid { grid-template-columns: 1fr; }
+  .topbar { padding: 0 10px; height: 50px; }
+  .tool-btn span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- MODEL MODAL -->
+<div id="model-modal" class="modal-ov hidden">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-ttl">Choisir un modèle</span>
+      <button class="modal-x" onclick="closeModal('model-modal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="model-opts">
+      <button class="model-opt sel" data-model="Hermes 4B" onclick="pickModel(this)">
+        <div class="mo-name">Hermes 4B <span class="mo-tag tag-fast">Rapide</span></div>
+        <div class="mo-desc">Conversations courantes, réponses rapides.</div>
+      </button>
+      <button class="model-opt" data-model="Hermes 7B" onclick="pickModel(this)">
+        <div class="mo-name">Hermes 7B <span class="mo-tag tag-smart">Avancé</span></div>
+        <div class="mo-desc">Raisonnement complexe, code, analyse approfondie.</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <div class="sb-ov hidden" id="sb-ov" onclick="closeSB()"></div>
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <button class="new-btn" onclick="newChat()">
+        <i class="fa-regular fa-pen-to-square"></i> Nouvelle conversation
+      </button>
+      <div class="sb-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="Rechercher…" oninput="filterConvs(this.value)">
+      </div>
+    </div>
+    <div class="sb-convs">
+      <div class="sec-lbl">Conversations</div>
+      <div id="conv-list"></div>
+    </div>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="avatar">T</div>
+        <div class="sb-info">
+          <div class="sb-info-name">Tecuit IA</div>
+          <div class="sb-info-sub">Backend local sécurisé</div>
+        </div>
+        <div class="sdot" id="sb-dot" title="Statut backend"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="tb-left">
+        <button class="menu-tog icon-btn" onclick="toggleSB()"><i class="fa-solid fa-bars"></i></button>
+        <button class="model-pick" onclick="openModal('model-modal')">
+          <span id="model-lbl">Hermes 4B</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+      </div>
+      <div class="tb-right">
+        <div class="tb-status" id="tb-status">
+          <div class="sdot" id="tb-dot"></div>
+          <span id="tb-txt">Connexion…</span>
+        </div>
+        <button class="icon-btn" onclick="newChat()" title="Nouvelle conversation"><i class="fa-regular fa-pen-to-square"></i></button>
+        <button class="icon-btn" id="menu-btn" onclick="toggleDD()"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        <div class="dropdown hidden" id="main-dd">
+          <button class="dd-item" onclick="exportChat()"><i class="fa-solid fa-download"></i> Exporter JSON</button>
+          <button class="dd-item" onclick="checkStatus()"><i class="fa-solid fa-satellite-dish"></i> Actualiser le statut</button>
+          <div class="dd-sep"></div>
+          <!-- Auto-speak toggle -->
+          <button class="dd-item" id="auto-speak-item" onclick="toggleAutoSpeak()">
+            <i class="fa-solid fa-volume-high"></i> Lecture automatique
+            <div class="tpill" id="auto-speak-pill"></div>
+          </button>
+          <div class="dd-sep"></div>
+          <button class="dd-item danger" onclick="clearChat()"><i class="fa-solid fa-trash"></i> Effacer la conversation</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Chat -->
+    <div class="chat-scroll" id="chat-scroll">
+      <div class="chat-inner" id="chat-inner"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-wrap">
+
+        <!-- Stop generation -->
+        <div class="stop-row" id="stop-row">
+          <button onclick="stopGen()">
+            <i class="fa-solid fa-stop" style="color:var(--red);font-size:10px"></i> Arrêter la génération
+          </button>
+        </div>
+
+        <!-- Voice recording indicator -->
+        <div class="voice-ind" id="voice-ind">
+          <div class="vbars"><span></span><span></span><span></span><span></span><span></span></div>
+          <span id="voice-interim">En écoute…</span>
+          <button class="voice-cancel" onclick="stopMic()"><i class="fa-solid fa-xmark"></i> Annuler</button>
+        </div>
+
+        <!-- Input box -->
+        <div class="input-box">
+          <textarea id="chat-input" class="input-ta" placeholder="Envoyer un message…" rows="1"></textarea>
+          <div class="input-tb">
+            <div class="tb-tools">
+              <button class="tool-btn" onclick="$('file-inp').click()" title="Joindre un fichier">
+                <i class="fa-solid fa-paperclip"></i><span>Fichier</span>
+              </button>
+              <button class="tool-btn" id="web-btn" onclick="toggleTool('web')" title="Recherche Internet">
+                <i class="fa-solid fa-globe"></i><span>Web</span>
+              </button>
+              <button class="tool-btn" id="wiki-btn" onclick="toggleTool('wiki')" title="Wikipedia (Kiwix)">
+                <i class="fa-brands fa-wikipedia-w"></i><span>Wiki</span>
+              </button>
+              <button class="tool-btn mic-btn" id="mic-btn" onclick="toggleMic()" title="Dicter un message">
+                <i class="fa-solid fa-microphone"></i><span>Voix</span>
+              </button>
+            </div>
+            <div class="tb-right-tools">
+              <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled title="Envoyer (Entrée)">
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="input-footer">Tecuit IA peut faire des erreurs. Vérifiez les informations importantes.</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<input type="file" id="file-inp" style="display:none" onchange="handleFile(this)">
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ── Helpers ────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+function esc(s = '') {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function now() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+/* ── Marked config ──────────────────────────────────────────── */
+(function setupMarked() {
+  const r = new marked.Renderer();
+  r.code = (code, lang) => {
+    let hi = '';
+    try {
+      hi = lang && hljs.getLanguage(lang)
+        ? hljs.highlight(code, { language: lang }).value
+        : hljs.highlightAuto(code).value;
+    } catch { hi = esc(code); }
+    return `<div>
+      <div class="code-hdr">
+        <span>${esc(lang || 'code')}</span>
+        <button class="copy-code" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> Copier</button>
+      </div>
+      <pre><code>${hi}</code></pre>
+    </div>`;
+  };
+  marked.use({ renderer: r, breaks: true, gfm: true });
+})();
+
+/* ── App state ──────────────────────────────────────────────── */
+let model    = 'Hermes 4B';
+let history  = [];
+let convs    = JSON.parse(localStorage.getItem('tia_convs') || '[]');
+let convId   = null;
+let isGen    = false;
+let abortCtrl = null;
+let useWeb   = false;
+let useWiki  = false;
+
+/* ── Startup ────────────────────────────────────────────────── */
+createConv();
+renderConvList();
+showWelcome();
+checkStatus();
+setInterval(checkStatus, 30000);
+
+/* ═══════════════════════════════════════════════════════════════
+   STATUS
+═══════════════════════════════════════════════════════════════ */
+async function checkStatus() {
+  const dot = $('tb-dot'), sbDot = $('sb-dot'), txt = $('tb-txt');
+  try {
+    const s = await fetch('/api/status').then(r => r.json());
+    const cls = s.hermes ? 'ok' : 'err';
+    dot.className = sbDot.className = 'sdot ' + cls;
+    if (s.hermes) {
+      const wikiPart = s.kiwix ? (s.kiwixBook ? ' · Wiki ✓' : ' · Wiki ⚠') : ' · Wiki ✗';
+      const piperPart = s.piper ? ' · TTS ✓' : '';
+      txt.textContent = 'Hermes ✓' + wikiPart + piperPart;
+      txt.style.color = '';
+    } else {
+      txt.textContent = 'Backend indisponible';
+      txt.style.color = '#f87171';
+    }
+  } catch {
+    dot.className = sbDot.className = 'sdot err';
+    txt.textContent = 'Backend non joignable';
+    txt.style.color = '#f87171';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONVERSATIONS
+═══════════════════════════════════════════════════════════════ */
+function createConv() {
+  convId = 'c' + Date.now();
+  convs.unshift({ id: convId, title: 'Nouvelle conversation', msgs: [], date: new Date().toISOString(), model });
+  saveConvs();
+}
+function newChat() {
+  saveCurrentConv();
+  createConv();
+  history = [];
+  showWelcome();
+  closeSB();
+  renderConvList();
+  toast('Nouvelle conversation');
+}
+function saveCurrentConv() {
+  const c = convs.find(x => x.id === convId);
+  if (!c) return;
+  c.msgs = [...history];
+  if (history.length) {
+    const first = history[0].content || '';
+    c.title = first.slice(0, 42) + (first.length > 42 ? '…' : '');
+  }
+  saveConvs();
+}
+function loadConv(id) {
+  saveCurrentConv();
+  convId = id;
+  const c = convs.find(x => x.id === id);
+  if (!c) return;
+  history = [...c.msgs];
+  model = c.model || 'Hermes 4B';
+  $('model-lbl').textContent = model;
+  renderMsgs();
+  renderConvList();
+  closeSB();
+}
+function delConv(id, e) {
+  e.stopPropagation();
+  convs = convs.filter(x => x.id !== id);
+  saveConvs();
+  if (id === convId) newChat(); else renderConvList();
+}
+function saveConvs() {
+  localStorage.setItem('tia_convs', JSON.stringify(convs));
+  renderConvList();
+}
+function renderConvList(filter = '') {
+  const list = $('conv-list');
+  list.innerHTML = '';
+  const filtered = filter
+    ? convs.filter(c => c.title.toLowerCase().includes(filter.toLowerCase()))
+    : convs;
+  filtered.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'conv-item' + (c.id === convId ? ' active' : '');
+    d.innerHTML = `<span class="conv-title">${esc(c.title)}</span>
+      <button class="conv-del" title="Supprimer"><i class="fa-solid fa-trash" style="font-size:10px"></i></button>`;
+    d.querySelector('.conv-del').onclick = e => delConv(c.id, e);
+    d.onclick = () => loadConv(c.id);
+    list.appendChild(d);
+  });
+}
+function filterConvs(v) { renderConvList(v); }
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDERING
+═══════════════════════════════════════════════════════════════ */
+function showWelcome() {
+  $('chat-inner').innerHTML = `
+    <div class="welcome">
+      <div class="w-logo"><i class="fa-solid fa-robot" style="color:#fff"></i></div>
+      <h1>Comment puis-je vous aider ?</h1>
+      <p>Posez n'importe quelle question. Activez <strong>Web</strong> ou <strong>Wiki</strong> pour des réponses enrichies, ou dictez avec <strong>Voix</strong>.</p>
+      <div class="sug-grid">
+        <button class="sug-card" onclick="useSug('Explique-moi comment fonctionne un réseau de neurones de manière simple')"><strong>🧠 Apprendre</strong>Comment fonctionne un réseau de neurones ?</button>
+        <button class="sug-card" onclick="useSug('Écris une fonction Python pour faire du web scraping avec BeautifulSoup et requests')"><strong>💻 Coder</strong>Scraping web en Python</button>
+        <button class="sug-card" onclick="useSug('Quelles sont les dernières avancées en intelligence artificielle en 2025 ?')"><strong>🌐 Actualité</strong>Dernières avancées en IA 2025</button>
+        <button class="sug-card" onclick="useSug('Qui était Alan Turing et pourquoi est-il important pour l\'informatique moderne ?')"><strong>📚 Culture</strong>Qui était Alan Turing ?</button>
+      </div>
+    </div>`;
+}
+function useSug(t) {
+  $('chat-input').value = t;
+  adjustTA(); updateSendBtn();
+  sendMessage();
+}
+
+function renderMsgs() {
+  $('chat-inner').innerHTML = '';
+  if (!history.length) { showWelcome(); return; }
+  history.forEach(m => appendMsg(m.role, m.content, m.sources || []));
+}
+
+/* ── Build sources panel ────────────────────────────────────── */
+function buildSrcPanel(sources) {
+  if (!sources || !sources.length) return '';
+  const items = sources.map(s => {
+    const kind = s.kind === 'wiki' ? 'wiki' : 'web';
+    const icon = kind === 'wiki' ? '<i class="fa-brands fa-wikipedia-w"></i>' : '<i class="fa-solid fa-globe"></i>';
+    return `<a class="src-item" href="${esc(s.url||'#')}" target="_blank" rel="noopener">
+      <div class="src-ico ${kind}">${icon}</div>
+      <div class="src-txt">
+        <div class="src-title">${esc(s.title || 'Source')}</div>
+        <div class="src-url">${esc((s.url || '').slice(0, 65))}</div>
+      </div>
+    </a>`;
+  }).join('');
+  return `<div class="src-panel">
+    <div class="src-hdr" onclick="toggleSrc(this)">
+      <i class="fa-solid fa-link" style="font-size:11px"></i>
+      ${sources.length} source${sources.length > 1 ? 's' : ''}
+      <i class="fa-solid fa-chevron-down chev"></i>
+    </div>
+    <div class="src-body">${items}</div>
+  </div>`;
+}
+function toggleSrc(hdr) {
+  hdr.classList.toggle('open');
+  hdr.nextElementSibling.classList.toggle('show');
+}
+
+/* ── appendMsg ──────────────────────────────────────────────── */
+function appendMsg(role, content, sources = []) {
+  const ci = $('chat-inner');
+  ci.querySelector('.welcome')?.remove();
+
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  const t = now();
+
+  if (role === 'user') {
+    row.innerHTML = `
+      <div class="msg-av usr">U</div>
+      <div class="msg-body">
+        <div class="msg-name">Vous <span class="msg-time">${t}</span></div>
+        <div class="msg-content">${esc(content).replace(/\n/g,'<br>')}</div>
+        <div class="msg-actions">
+          <button class="act-btn" title="Copier" onclick="copyPlain(this,${JSON.stringify(content)})">
+            <i class="fa-regular fa-copy"></i> Copier
+          </button>
+        </div>
+      </div>`;
+  } else {
+    const hasWeb  = sources.some(s => s.kind === 'web');
+    const hasWiki = sources.some(s => s.kind === 'wiki');
+    const srcBadges = (hasWeb  ? '<span class="badge badge-web"><i class="fa-solid fa-globe" style="font-size:9px"></i> Web</span>' : '')
+                    + (hasWiki ? '<span class="badge badge-wiki"><i class="fa-brands fa-wikipedia-w" style="font-size:9px"></i> Wiki</span>' : '');
+
+    row.innerHTML = `
+      <div class="msg-av ai"><i class="fa-solid fa-robot" style="font-size:12px;color:#fff"></i></div>
+      <div class="msg-body">
+        <div class="msg-name">
+          Tecuit IA
+          <span class="badge badge-model">${esc(model)}</span>
+          ${srcBadges}
+          <span class="msg-time">${t}</span>
+        </div>
+        <div class="msg-content">${marked.parse(content)}</div>
+        ${buildSrcPanel(sources)}
+        <div class="msg-actions">
+          <button class="act-btn spk-btn" title="Écouter" onclick="handleSpeak(this,${JSON.stringify(content)})">
+            <i class="fa-solid fa-volume-high"></i> Écouter
+          </button>
+          <button class="act-btn" title="Copier" onclick="copyPlain(this,${JSON.stringify(content)})">
+            <i class="fa-regular fa-copy"></i> Copier
+          </button>
+          <button class="act-btn" title="Régénérer" onclick="regenLast()">
+            <i class="fa-solid fa-rotate-right"></i> Régénérer
+          </button>
+        </div>
+      </div>`;
+  }
+  ci.appendChild(row);
+  scrollBot();
+  return row;
+}
+
+/* ── Stream helpers ─────────────────────────────────────────── */
+function appendStreamTarget() {
+  const ci = $('chat-inner');
+  ci.querySelector('.welcome')?.remove();
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.id = 'stream-row';
+  row.innerHTML = `
+    <div class="msg-av ai"><i class="fa-solid fa-robot" style="font-size:12px;color:#fff"></i></div>
+    <div class="msg-body">
+      <div class="msg-name">Tecuit IA <span class="badge badge-model">${esc(model)}</span></div>
+      <div id="stream-status"></div>
+      <div class="msg-content" id="stream-cnt">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>
+    </div>`;
+  ci.appendChild(row);
+  scrollBot();
+}
+
+function appendStatusEvt(msg) {
+  const wrap = $('stream-status');
+  if (!wrap) return;
+  const ev = document.createElement('div');
+  ev.className = 'status-evt';
+  ev.innerHTML = `<i class="fa-solid fa-circle-notch spin" style="font-size:11px"></i> ${esc(msg)}`;
+  wrap.appendChild(ev);
+  scrollBot();
+}
+
+function updateStream(text) {
+  const el = $('stream-cnt');
+  if (el) { el.innerHTML = marked.parse(text); scrollBot(); }
+}
+
+function finalizeStream(text, sources = []) {
+  const row = $('stream-row');
+  if (!row) return;
+  row.removeAttribute('id');
+
+  const body = row.querySelector('.msg-body');
+  body.querySelector('#stream-status')?.remove();
+
+  const cnt = body.querySelector('#stream-cnt') || body.querySelector('.msg-content');
+  if (cnt) { cnt.removeAttribute('id'); cnt.innerHTML = marked.parse(text); }
+
+  // Source badges in name
+  const nameEl = body.querySelector('.msg-name');
+  const hasWeb  = sources.some(s => s.kind === 'web');
+  const hasWiki = sources.some(s => s.kind === 'wiki');
+  if (hasWeb)  nameEl.innerHTML += '<span class="badge badge-web"><i class="fa-solid fa-globe" style="font-size:9px"></i> Web</span>';
+  if (hasWiki) nameEl.innerHTML += '<span class="badge badge-wiki"><i class="fa-brands fa-wikipedia-w" style="font-size:9px"></i> Wiki</span>';
+  nameEl.innerHTML += `<span class="msg-time">${now()}</span>`;
+
+  // Sources panel
+  if (sources.length) {
+    const sp = document.createElement('div');
+    sp.innerHTML = buildSrcPanel(sources);
+    cnt.after(sp.firstElementChild);
+  }
+
+  // Actions
+  const acts = document.createElement('div');
+  acts.className = 'msg-actions';
+  acts.innerHTML = `
+    <button class="act-btn spk-btn" title="Écouter" onclick="handleSpeak(this,${JSON.stringify(text)})">
+      <i class="fa-solid fa-volume-high"></i> Écouter
+    </button>
+    <button class="act-btn" title="Copier" onclick="copyPlain(this,${JSON.stringify(text)})">
+      <i class="fa-regular fa-copy"></i> Copier
+    </button>
+    <button class="act-btn" title="Régénérer" onclick="regenLast()">
+      <i class="fa-solid fa-rotate-right"></i> Régénérer
+    </button>`;
+  body.appendChild(acts);
+
+  // Auto-speak
+  if (autoSpeak && text) {
+    const spkBtn = acts.querySelector('.spk-btn');
+    handleSpeak(spkBtn, text);
+  }
+
+  scrollBot();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SEND / CHAT
+═══════════════════════════════════════════════════════════════ */
+async function sendMessage() {
+  const inp  = $('chat-input');
+  const text = inp.value.trim();
+  if (!text || isGen) return;
+
+  inp.value = ''; adjustTA(); updateSendBtn();
+  history.push({ role: 'user', content: text });
+  appendMsg('user', text);
+  appendStreamTarget();
+
+  isGen = true;
+  abortCtrl = new AbortController();
+  $('stop-row').style.display = 'block';
+
+  let reply   = '';
+  let sources = [];
+
+  try {
+    const res = await fetch('/api/chat', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ messages: history, model, useWeb, useWiki }),
+      signal:  abortCtrl.signal
+    });
+    if (!res.ok) throw new Error(`Serveur ${res.status}`);
+
+    const reader = res.body.getReader();
+    const dec    = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of dec.decode(value, { stream: true }).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (!raw || raw === '[DONE]') continue;
+        try {
+          const obj = JSON.parse(raw);
+          if (obj.type === 'status')  { appendStatusEvt(obj.message); continue; }
+          if (obj.type === 'sources') { sources = obj.sources; continue; }
+          if (obj.type === 'error')   { reply += `\n\n**⚠️ Erreur:** ${obj.message}`; updateStream(reply); continue; }
+          const delta = obj.choices?.[0]?.delta?.content || '';
+          if (delta) { reply += delta; updateStream(reply); }
+        } catch {}
+      }
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      reply = reply ? reply + '\n\n*[Génération arrêtée]*' : '*[Génération arrêtée]*';
+    } else {
+      reply = `**⚠️ Erreur de connexion**\n\n${err.message}\n\nVérifiez que le serveur Node.js est démarré (\`node server.js\`).`;
+    }
+  }
+
+  finalizeStream(reply || '*(Aucune réponse reçue)*', sources);
+
+  if (reply) {
+    history.push({ role: 'assistant', content: reply, sources });
+    saveCurrentConv();
+  }
+
+  isGen = false; abortCtrl = null;
+  $('stop-row').style.display = 'none';
+}
+
+function stopGen() {
+  if (abortCtrl) { abortCtrl.abort(); toast('Génération arrêtée'); }
+}
+
+async function regenLast() {
+  const lastAiIdx = [...history].map((m,i) => ({m,i})).reverse().find(x => x.m.role === 'assistant')?.i;
+  if (lastAiIdx == null) return;
+  history.splice(lastAiIdx, 1);
+  renderMsgs();
+  appendStreamTarget();
+
+  isGen = true; abortCtrl = new AbortController();
+  $('stop-row').style.display = 'block';
+
+  let reply = '', sources = [];
+  try {
+    const res = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages: history, model, useWeb, useWiki }),
+      signal: abortCtrl.signal
+    });
+    const reader = res.body.getReader(); const dec = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read(); if (done) break;
+      for (const line of dec.decode(value,{stream:true}).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim(); if (!raw || raw === '[DONE]') continue;
+        try {
+          const obj = JSON.parse(raw);
+          if (obj.type==='status')  { appendStatusEvt(obj.message); continue; }
+          if (obj.type==='sources') { sources=obj.sources; continue; }
+          const delta = obj.choices?.[0]?.delta?.content||'';
+          if (delta) { reply+=delta; updateStream(reply); }
+        } catch {}
+      }
+    }
+  } catch(e) { reply = e.name==='AbortError'?'*[Arrêté]*':'**Erreur**: '+e.message; }
+
+  finalizeStream(reply || '*(Vide)*', sources);
+  if (reply) { history.push({role:'assistant',content:reply,sources}); saveCurrentConv(); }
+  isGen=false; abortCtrl=null; $('stop-row').style.display='none';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VOICE — TTS
+═══════════════════════════════════════════════════════════════ */
+let isSpeaking   = false;
+let currentSpkBtn = null;
+let currentAudio  = null;
+let autoSpeak     = false;
+
+function cleanForSpeech(text) {
+  return text
+    .replace(/```[\s\S]*?```/g, 'bloc de code.')
+    .replace(/`[^`]+`/g, '')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^\s*[-*+]\s/gm, '')
+    .replace(/^\s*\d+\.\s/gm, '')
+    .replace(/\|[^\n]+\|/g, '')
+    .replace(/\n{2,}/g, '. ')
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\[[\d,]+\]/g, '')
+    .trim();
+}
+
+function finishSpeech() {
+  isSpeaking = false;
+  if (currentSpkBtn) {
+    currentSpkBtn.innerHTML = '<i class="fa-solid fa-volume-high"></i> Écouter';
+    currentSpkBtn.classList.remove('playing');
+    currentSpkBtn = null;
+  }
+  currentAudio = null;
+  window.speechSynthesis?.cancel();
+}
+
+/* Try Piper (server) first, fallback to Web Speech API */
+async function handleSpeak(btn, rawText) {
+  // If this button is already playing → stop
+  if (isSpeaking && currentSpkBtn === btn) { stopAllSpeech(); return; }
+
+  stopAllSpeech();
+
+  const text = cleanForSpeech(rawText);
+  if (!text) return;
+
+  btn.innerHTML = '<i class="fa-solid fa-stop"></i> Arrêter';
+  btn.classList.add('playing');
+  currentSpkBtn = btn;
+  isSpeaking    = true;
+
+  // 1) Try Piper via backend
+  try {
+    const res = await fetch('/api/tts', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ text: text.slice(0, 2000) })
+    });
+    if (!res.ok) throw new Error('Piper indisponible');
+
+    const blob  = await res.blob();
+    const audio = new Audio(URL.createObjectURL(blob));
+    currentAudio = audio;
+
+    audio.onended = () => { URL.revokeObjectURL(audio.src); finishSpeech(); };
+    audio.onerror = () => { URL.revokeObjectURL(audio.src); speakBrowser(btn, text); };
+    await audio.play();
+    return;
+  } catch {
+    // Piper not available — fall through to browser TTS
+  }
+
+  // 2) Fallback: Web Speech API
+  speakBrowser(btn, text);
+}
+
+function speakBrowser(btn, text) {
+  if (!window.speechSynthesis) { finishSpeech(); toast('Synthèse vocale non supportée', true); return; }
+
+  // Split into chunks to avoid browser TTS cut-off on long texts
+  const chunks = text.match(/.{1,220}(?:[.!?…]|\s|$)/g) || [text];
+  let idx = 0;
+
+  function speakChunk() {
+    if (idx >= chunks.length || !isSpeaking) { finishSpeech(); return; }
+    const u = new SpeechSynthesisUtterance(chunks[idx++]);
+    u.lang   = 'fr-FR';
+    u.rate   = 1.05;
+    u.pitch  = 1.0;
+    u.volume = 1.0;
+
+    // Pick best available French voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = ['Google français', 'Microsoft Julie', 'Microsoft Paul', 'Amelie', 'Thomas', 'Marie', 'Léa'];
+    let voice = null;
+    for (const name of preferred) {
+      voice = voices.find(v => v.name.includes(name));
+      if (voice) break;
+    }
+    if (!voice) voice = voices.find(v => v.lang.startsWith('fr')) || voices[0];
+    if (voice) u.voice = voice;
+
+    u.onend   = speakChunk;
+    u.onerror = () => finishSpeech();
+    window.speechSynthesis.speak(u);
+  }
+
+  speakChunk();
+}
+
+function stopAllSpeech() {
+  if (currentAudio) { try { currentAudio.pause(); } catch {} }
+  window.speechSynthesis?.cancel();
+  if (isSpeaking) finishSpeech();
+}
+
+// Load voices async (Chrome)
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+function toggleAutoSpeak() {
+  closeDD();
+  autoSpeak = !autoSpeak;
+  $('auto-speak-pill').classList.toggle('on', autoSpeak);
+  toast(autoSpeak ? '🔊 Lecture automatique activée' : 'Lecture auto désactivée');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VOICE — STT (Speech Recognition)
+═══════════════════════════════════════════════════════════════ */
+const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recog = null;
+let isListening = false;
+
+if (SR) {
+  recog = new SR();
+  recog.lang            = 'fr-FR';
+  recog.continuous      = false;
+  recog.interimResults  = true;
+  recog.maxAlternatives = 1;
+
+  recog.onstart = () => {
+    isListening = true;
+    $('mic-btn').classList.add('listening');
+    $('mic-btn').innerHTML = '<i class="fa-solid fa-microphone-slash"></i><span>Stop</span>';
+    $('voice-ind').classList.add('show');
+    $('voice-interim').textContent = 'En écoute…';
+  };
+
+  recog.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    const display = final || interim;
+    $('voice-interim').textContent = display || 'En écoute…';
+    if (final) {
+      $('chat-input').value = final.trim();
+      adjustTA(); updateSendBtn();
+    }
+  };
+
+  recog.onend = () => {
+    isListening = false;
+    $('mic-btn').classList.remove('listening');
+    $('mic-btn').innerHTML = '<i class="fa-solid fa-microphone"></i><span>Voix</span>';
+    $('voice-ind').classList.remove('show');
+    $('voice-interim').textContent = 'En écoute…';
+    const text = $('chat-input').value.trim();
+    if (text) setTimeout(sendMessage, 300);
+  };
+
+  recog.onerror = (e) => {
+    const msgs = {
+      'not-allowed': 'Microphone refusé — autorisez l\'accès dans votre navigateur',
+      'no-speech':   'Aucune parole détectée, réessayez',
+      'network':     'Erreur réseau pour la reconnaissance vocale',
+      'aborted':     ''
+    };
+    const msg = msgs[e.error];
+    if (msg) toast(msg, true);
+    // onend will fire and reset UI
+  };
+} else {
+  // Hide mic button if not supported
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = $('mic-btn');
+    if (btn) btn.style.display = 'none';
+  });
+}
+
+function toggleMic() {
+  if (!recog) { toast('Reconnaissance vocale non supportée par ce navigateur', true); return; }
+  if (isListening) stopMic();
+  else startMic();
+}
+function startMic() {
+  stopAllSpeech(); // stop TTS before recording
+  try { recog.start(); }
+  catch (e) { if (e.name !== 'InvalidStateError') toast('Impossible de démarrer le micro', true); }
+}
+function stopMic() {
+  if (recog && isListening) recog.stop();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLS & MODEL
+═══════════════════════════════════════════════════════════════ */
+function toggleTool(tool) {
+  if (tool === 'web') {
+    useWeb = !useWeb;
+    $('web-btn').classList.toggle('on', useWeb);
+    toast(useWeb ? '🌐 Recherche web activée' : 'Recherche web désactivée');
+  } else {
+    useWiki = !useWiki;
+    $('wiki-btn').classList.toggle('on', useWiki);
+    toast(useWiki ? '📚 Wikipedia (Kiwix) activé' : 'Wikipedia désactivé');
+  }
+}
+function pickModel(btn) {
+  document.querySelectorAll('.model-opt').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  model = btn.dataset.model;
+  $('model-lbl').textContent = model;
+  closeModal('model-modal');
+  toast('Modèle : ' + model);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════════ */
+function toggleSB() {
+  $('sidebar').classList.toggle('open');
+  $('sb-ov').classList.toggle('hidden');
+}
+function closeSB() {
+  $('sidebar').classList.remove('open');
+  $('sb-ov').classList.add('hidden');
+}
+function toggleDD() { $('main-dd').classList.toggle('hidden'); }
+function closeDD()  { $('main-dd').classList.add('hidden'); }
+function openModal(id)  { $(id).classList.remove('hidden'); }
+function closeModal(id) { $(id).classList.add('hidden'); }
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#menu-btn') && !e.target.closest('#main-dd')) closeDD();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDD(); closeSB();
+    document.querySelectorAll('.modal-ov').forEach(m => m.classList.add('hidden'));
+  }
+});
+document.querySelectorAll('.modal-ov').forEach(m => m.addEventListener('click', e => {
+  if (e.target === m) m.classList.add('hidden');
+}));
+
+function scrollBot() {
+  const s = $('chat-scroll');
+  requestAnimationFrame(() => s.scrollTop = s.scrollHeight);
+}
+
+// Copy helpers
+function copyPlain(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+function copyCode(btn) {
+  const code = btn.closest('div').nextElementSibling?.querySelector('code')?.innerText || '';
+  navigator.clipboard.writeText(code).then(() => {
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copié !';
+    setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Copier', 1500);
+  });
+}
+
+// Export
+function exportChat() {
+  closeDD();
+  const data = history.map(m => ({ de: m.role === 'user' ? 'Vous' : 'Tecuit IA', message: m.content, date: new Date().toISOString() }));
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tecuit_conv_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Conversation exportée');
+}
+function clearChat() {
+  closeDD();
+  if (!confirm('Effacer toute la conversation ?')) return;
+  history = []; saveCurrentConv(); showWelcome(); toast('Conversation effacée');
+}
+
+// File upload
+function handleFile(inp) {
+  const f = inp.files[0]; if (!f) return;
+  if (f.size > 20 * 1024 * 1024) { toast('Fichier trop volumineux (max 20 Mo)', true); inp.value = ''; return; }
+  $('chat-input').value = `[Fichier joint : ${f.name} — ${(f.size/1024).toFixed(1)} KB]\n`;
+  adjustTA(); updateSendBtn(); $('chat-input').focus();
+  inp.value = '';
+  toast('Fichier joint : ' + f.name);
+}
+
+// Textarea
+const taEl = $('chat-input');
+taEl.addEventListener('input', () => { adjustTA(); updateSendBtn(); });
+taEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+function adjustTA() {
+  taEl.style.height = 'auto';
+  taEl.style.height = Math.min(taEl.scrollHeight, 200) + 'px';
+}
+function updateSendBtn() {
+  $('send-btn').disabled = !taEl.value.trim() || isGen;
+}
+
+// Toast
+let toastTimer;
+function toast(msg, isErr = false) {
+  const t = $('toast');
+  t.innerHTML = (isErr
+    ? '<i class="fa-solid fa-triangle-exclamation" style="color:#f87171"></i> '
+    : '<i class="fa-solid fa-circle-check" style="color:var(--grn)"></i> ')
+    + esc(msg);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
